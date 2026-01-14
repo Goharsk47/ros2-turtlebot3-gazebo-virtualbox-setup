@@ -1,0 +1,99 @@
+# ROS 2 Humble & TurtleBot3 Gazebo Setup (Ubuntu 22.04, VirtualBox)
+
+This repository documents a complete setup of Gazebo 11 and TurtleBot3 simulation on Ubuntu 22.04 (Jammy) with ROS 2 Humble running inside a VirtualBox virtual machine. It is meant as a reproducible lab plus a detailed error book of all issues faced during installation and configuration.[2][3]
+
+## Features
+
+- Step‑by‑step commands to add the OSRF Gazebo repository and GPG key correctly, avoiding common APT source corruption mistakes.  
+- Installation of Gazebo 11 and TurtleBot3 Gazebo packages compatible with ROS 2 Humble on Ubuntu 22.04.  
+- Fixes for dependency conflicts between Gazebo Classic (11) and newer Gazebo Sim / `gz-tools2` packages.  
+- Workarounds for VirtualBox graphics limitations using software rendering and ROS–Gazebo bridge plugins.  
+- Final launch and teleoperation commands to bring up TurtleBot3 in Gazebo and control it via keyboard teleop.  
+
+## System requirements
+
+- Ubuntu 22.04 (Jammy) running in Oracle VirtualBox.  
+- ROS 2 Humble installed from the official ROS repositories.  
+- Internet access to download OSRF Gazebo packages and ROS 2 simulation packages.[3]
+
+## Setup overview
+
+1. **OSRF Gazebo repository & GPG key**
+
+   - Add the OSRF key and stable repository for Gazebo packages:
+
+   ```bash
+   sudo curl -sSL https://packages.osrfoundation.org/gazebo.gpg \
+     -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+     | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+   sudo apt update
+   ```
+
+2. **Install Gazebo 11 and TurtleBot3 simulation**
+
+   ```bash
+   sudo apt remove -y gz-tools2
+   sudo apt install -y gazebo11 libgazebo11-dev
+   sudo apt install -y ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-simulations
+   sudo apt install -y ros-humble-gazebo-ros-pkgs
+   ```
+
+   These packages provide Gazebo Classic 11 and the TurtleBot3 Gazebo worlds and launch files for ROS 2 Humble.[4][5]
+
+3. **Set environment variables**
+
+   For VirtualBox graphics stability and TurtleBot3 model selection:
+
+   ```bash
+   echo 'export TURTLEBOT3_MODEL=burger' >> ~/.bashrc
+   echo 'export LIBGL_ALWAYS_SOFTWARE=1' >> ~/.bashrc
+   ```
+
+   Then reload:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+## How to run the simulation
+
+### Terminal 1 – start Gazebo world
+
+```bash
+export TURTLEBOT3_MODEL=burger
+export LIBGL_ALWAYS_SOFTWARE=1
+source /opt/ros/humble/setup.bash
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+```
+
+### Terminal 2 – keyboard teleoperation
+
+```bash
+export TURTLEBOT3_MODEL=burger
+source /opt/ros/humble/setup.bash
+ros2 run turtlebot3_teleop teleop_keyboard
+```
+
+If everything is configured correctly, Gazebo will open a world (for example with green pillars) and the TurtleBot3 will respond to your keyboard commands.[6][2]
+
+## Error book
+
+This project also includes an **error book** documenting all major issues encountered during setup, such as:
+
+- Wrong `curl` syntax leading to invalid GPG key download and corrupted `.list` files.  
+- APT `Unmet dependencies` caused by `gz-tools2` and Gazebo Sim conflicting with Gazebo 11.  
+- `Service /spawn_entity unavailable` errors due to missing ROS–Gazebo bridge packages and VirtualBox 3D acceleration problems.  
+
+Each error entry records:
+
+- Context (OS, ROS 2 version, VM setup).  
+- Exact commands that produced the error.  
+- Full error messages.  
+- Root cause analysis.  
+- Final working fix and clean command sequence.  
+
+Use this repository both as a quick setup guide and as a troubleshooting diary for running TurtleBot3 simulation on ROS 2 Humble inside VirtualBox.
+
