@@ -94,5 +94,41 @@ Each error entry records:
 - Full error messages.
 - Root cause analysis.
 - Final working fix and clean command sequence.
+- 
+## Quick Start / Setup Commands
+
+A consolidated shell script (`setup.sh`) that runs all setup commands in one go:
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+# 1. OSRF repo & key
+sudo curl -sSL https://packages.osrfoundation.org/gazebo.gpg \
+  -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+
+sudo apt update
+
+# 2. Fix dependency conflicts
+sudo apt remove -y gz-tools2 || true
+sudo apt install -y gazebo11 libgazebo11-dev
+sudo apt install -y ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-simulations
+sudo apt install -y ros-humble-gazebo-ros-pkgs
+
+# 3. Environment variables
+echo 'export TURTLEBOT3_MODEL=burger' >> ~/.bashrc
+echo 'export LIBGL_ALWAYS_SOFTWARE=1' >> ~/.bashrc
+echo "Setup complete! Run: source ~/.bashrc"
+```
+
+**To use this script:**
+
+1. Save as `setup.sh` in your home directory.
+2. Make it executable: `chmod +x ~/setup.sh`
+3. Run it: `~/setup.sh`
+4. Reload shell: `source ~/.bashrc`
 
 Use this repository both as a quick setup guide and as a troubleshooting diary for running TurtleBot3 simulation on ROS 2 Humble inside VirtualBox.
